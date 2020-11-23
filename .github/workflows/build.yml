@@ -23,8 +23,9 @@ jobs:
           npm install --no-optional reveal-md
           mkdir build
           cp -r img build/
-          find *.md -print0 | xargs -0 -n1 sed -i 's/"media\//"https:\/\/raw.githubusercontent.com\/estuary\/slides\/master\/media\//g'
-          find *.md -print0 | xargs -0 -n1 ./node_modules/.bin/reveal-md --css custom.css --static build
+          cp -r lib build/
+          find *.md -print0 | xargs -0 -n1 -t sed -i 's/"media\//"https:\/\/raw.githubusercontent.com\/estuary\/slides\/master\/media\//g'
+          find *.md -print0 | xargs -0 -n1 -t ./node_modules/.bin/reveal-md --css custom.css --static build
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@releases/v3
         with:
