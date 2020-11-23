@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <title>Estuary Flow</title>
+    <link rel="shortcut icon" href="./favicon.ico"/>
+    <link rel="stylesheet" href="./dist/reveal.css" />
+    <link rel="stylesheet" href="./dist/theme/league.css" id="theme" />
+    <link rel="stylesheet" href="./css/highlight/zenburn.css" />
+    <link rel="stylesheet" href="./_assets/custom.css" />
+
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides"><section  data-markdown><script type="text/template">
+
+# Estuary <i>Flow</i>
+
+<audio data-autoplay src="talk about estuary flow.m4a"></audio>
+</script></section><section  data-markdown><script type="text/template">
+
+> Unifies technologies and teams around a shared understanding of
+their data...
+
+> ...that updates in milliseconds.
+
+<aside class="notes"><ul>
+<li>Tool the helps orgs define and implement their &quot;Data Mesh&quot;.</li>
+<li>What are our datasets and how do we source them, how can we transform them
+using complex joins &amp; aggregations, how do we push that data into other
+systems we care about &amp; keep it up to date ?</li>
+<li>(transition)</li>
+<li>What&#39;s special: universal access to tools &amp; ecosystems of &quot;Complex Event Processing&quot; systems vs &quot;Massively Parallel Batch Analytics&quot;.</li>
+</ul>
+<!-- <audio data-autoplay src="unifies tech and teams.m4a"></audio> --></aside></script></section><section  data-markdown><script type="text/template">
+
+## Today's Split Brain
+
+<div style="float: left; width: 50%">
+
+### [CEP](https://en.wikipedia.org/wiki/Complex_event_processing)
+```mermaid
+graph TD;
+  api((API))
+  ps[/Kenesis/]
+  t{{"AWS λ ⚙️"}}
+  db[(DynamoDB)]
+
+  api --> ps;
+  ps --> t;
+  t --> db;
+  db --> api;
+```
+
+</div>
+
+<div style="float: right; width: 50%">
+
+### [MPP DB](https://looker.com/databases/analytical)
+```mermaid
+graph TD;
+  ps[/Kenesis/]
+  wh[(Snowflake)]
+  dbt{{Airflow + dbt}}
+  a>Analysts]
+
+  ps --> wh;
+  wh --> dbt;
+  dbt --> wh;
+  wh --> a;
+
+```
+
+</div>
+
+<aside class="notes"><ul>
+<li>Illustrate problem; typical lambda arch setup<ul>
+<li>One one hand, event pipeline: api -&gt; kenesis -&gt; lambda -&gt; dynamo -&gt; api</li>
+<li>On other; same kenesis topic of events -&gt; snowpipe<ul>
+<li>wire up airflow + dbt for regular materializations &amp; roll-ups of those tables</li>
+</ul>
+</li>
+<li><h2 id="this-is-a-split-brain"><em>this is a split brain</em></h2>
+</li>
+</ul>
+</li>
+</ul>
+</aside></script></section><section  data-markdown><script type="text/template">
+
+## Today's Split Brain
+
+|                  |           CEP          |        MPP DB       |
+|-----------------:|:----------------------:|:-------------------:|
+| <i>Structure</i> |     JSON / Protobuf    |         SQL         |
+|   <i>Catalog</i> |          Topics        |        Tables       |
+| <i>Represent</i> |       Event Buffer     |    S3 + Columnar    |
+| <i>Transform</i> |      DataFlow, λ's     |    Airflow + dbt    |
+|       <i>Act</i> |        APIs, DBs       |   Looker, Tableau   |
+|   <i>Used By</i> |       Backend Eng      |    Analysts & ML    |
+
+<aside class="notes"><ul>
+<li><p>We&#39;re looking at each of the layered concerns for these paradigms</p>
+<ul>
+<li><p>EP uses documents capture full ctx, vs flat tabular structure normalized for joins</p>
+</li>
+<li><p>Catalog: topic you subscribe to, vs comparative slow-changing table of entire data sets</p>
+</li>
+<li><p>Data Representation: really fast log of sequential events on disks somewhere, but usually keeping only recent data around before i run out of space, vs query-optimized columnar store on S3</p>
+</li>
+<li><p>Transform: procedural lambdas in a programming language, vs declarative SQL views</p>
+</li>
+<li><p>Used by: The systems have different users, with different goals.</p>
+<ul>
+<li>Even best of intentions, you get org friction / communication challenges.</li>
+</ul>
+</li>
+<li><p>How to fix: these are layers of an onion. Start at the top.</p>
+<ul>
+<li>Can&#39;t meaningfully unify transformation by building atop incompatible paradigms
+cataloging data, and different sources-of-truth for representing it.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</aside></script></section><section  data-markdown><script type="text/template">
+
+## How Flow Helps
+
+<aside class="notes"><p>Now that we&#39;ve discussed the state of the world, let&#39;s talk
+about what Flow is doing to help.</p>
+</aside></script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+
+## Collections
+
+```yaml
+collections:
+  - name: shipments
+    key: [/id]
+```
+
+Collections are a real-time cloud storage lake
+that's directly accessible using preferred tools.
+
+<aside class="notes"><ul>
+<li>Collections are simultaneously a super fast pub/sub topic,
+ and a complete description of a data set, stored right in cloud storage.<ul>
+<li>Representation accessible to low-latency EP and MP tools like Snowflake.</li>
+<li>Fundamentally break down the barrier that today, divides CEP vs MP.</li>
+</ul>
+</li>
+</ul>
+</aside></script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+
+## Collections
+
+Documents are [schematized](https://json-schema.org/understanding-json-schema/) JSON.
+
+```yaml
+collections:
+  - name: shipments
+    key: [/id]
+```
+```yaml
+    schema: https://example/shipments.schema.yaml
+    projections:
+      carrier:
+        location: /vendor/name # JSON pointer.
+        partition: true
+```
+
+<i>Projections</i> relate table columns ⇔ document locations.
+
+<aside class="notes"><ul>
+<li>Set of JSON documents. Add at any time, update by writing new document with same key.<ul>
+<li>Also schematized. JSON schema against which all documents must validate.</li>
+<li>Flow integrating against systems which aren&#39;t JSON native. Projections are how we relate.</li>
+</ul>
+</li>
+</ul>
+</aside></script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+
+## Collections
+
+```yaml
+collections:
+  - name: shipments
+    key: [/id]
+```
+```yaml
+    schema: https://example/shipments.schema.yaml
+    projections:
+      carrier:
+        location: /vendor/name # JSON pointer.
+        partition: true
+```
+
+Stored as logically partitioned, compressed JSON.
+
+```
+shipments/carrier=UPS/utc_date=2020-11-22/{name}.gz
+```
+
+</script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+
+## Collections
+
+```yaml
+collections:
+  - name: shipments
+    key: [/id]
+```
+Stored as logically partitioned, compressed JSON.
+
+```
+shipments/carrier=UPS/utc_date=2020-11-22/{name}.gz
+```
+
+* Query via Snowflake / BigQuery
+  * Predicate push-down ➭ <i>fast and cheap</i>.
+* Or Spark, Map/Reduce, etc.
+
+</script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+
+## Collections
+
+<i>Capture</i> collections by binding from a data source.
+
+```yaml
+collections:
+  - name: shipments
+    key: [/id]
+```
+```yaml
+endpoints:
+  myKenesisAccount:
+    kenesis: "arn:aws:kinesis:us-east-1:my-account-id"
+
+capture:
+  fromMyKenesisFirehose:
+   - collection: shipments
+     endpoint: myKenesisAccount
+     stream: Shipments
+```
+
+Or from a watched S3 bucket, Database, API, etc...
+
+</script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+
+## Collections
+
+Materialize collections by binding to destinations.
+
+```yaml
+collections:
+  - name: shipments
+    key: [/id]
+```
+```yaml
+endpoints:
+  myDatabase:
+    postgresql: "https://CLUSTER_ID.LOCAL_HOST_IP.ip.es.io:9243"
+
+materialize:
+  shipmentsToElastic:
+   - collection: shipments
+     endpoint: myElasticCluster
+     table: shipments_for_search
+```
+
+</script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+
+## Collections
+
+Schema is _projected_ into the target system.
+
+```yaml
+collections:
+  - name: shipments
+    key: [/id]
+```
+```yaml
+    schema: https://example/shipments.schema.yaml
+```
+Generated:
+```SQL
+CREATE TABLE shipments (
+  id       BIGINT PRIMARY KEY NOT NULL,
+  carrier  TEXT NOT NULL,
+  address  TEXT
+);
+```
+
+
+</script></section><section  data-markdown><script type="text/template">
+
+## Integrate
+
+* Get automatic docs & APIs.
+* Discover & share with peers.
+* Lakes are accessible to preferred tools.
+
+<aside class="notes"><p>Has to be self service. What data is available? How was it created? How was this metric calculated?</p>
+</aside></script></section><section  data-markdown><script type="text/template">
+
+## How Flow Helps: Recap
+
+|                  |           Flow          
+|-----------------:|:-----------------------------:|
+| <i>Structure</i> | [JSON Schema](https://json-schema.org/understanding-json-schema/) + Projections     |
+|   <i>Catalog</i> | Collections                   |
+| <i>Represent</i> | S3 + Real-time                |
+| <i>Transform</i> | λ's <i>or</i> Airflow + dbt   |
+|       <i>Act</i> | APIs, DBs <i>or</i> Looker    |
+|   <i>Used By</i> | All  🌈                       |
+
+
+</script></section><section  data-markdown><script type="text/template">
+
+## 3: Transform
+
+Create derived data products & event streams
+that update with your data.
+
+Write in familiar languages (e.x. TypeScript, Python),<br>
+or bring your own AWS λ.
+
+</script></section><section  data-markdown><script type="text/template">
+
+## 3: Transform
+
+Flow's capabilities are **unique**.
+
+- Complex joins and aggregations.
+- <u>Full</u> understanding of history.
+- <u>No</u> windowing required.
+- <u>Unbounded</u> look-back.
+- <u>Automatic</u> data reductions.
+- <u>Dynamic</u> scaling w/o re-partitioning.
+
+</script></section><section  data-markdown><script type="text/template">
+
+## 4: Materialize
+
+Push back into other systems
+
+* Database Tables
+* Key/Value
+* Pub/Sub
+* Cloud Storage
+* APIs (WebHooks)
+
+... with full history, and low-latency updates.
+
+</script></section><section  data-markdown><script type="text/template">
+
+## Why History Matters
+
+What happens today...
+
+<aside class="notes"><p>speaking of history, let&#39;s talk about why this is such a problem today.</p>
+</aside></script></section><section  data-markdown><script type="text/template">
+
+A typical λ architecture.
+
+```mermaid
+graph LR;
+  src((API))
+  ps[/Pub/Sub/]
+  wh[(S3)]
+  a>Analysts]
+  t1{{Transform}}
+  db1[(Redis)]
+
+  src --> ps;
+  ps --> wh;
+  ps --> t1;
+
+  subgraph Lake
+  wh --> a
+  end
+
+  subgraph Serving
+  t1 --> db1;
+  end
+
+```
+
+<aside class="notes"><p>now classic &quot;lambda&quot; architecture.</p>
+</aside></script></section><section  data-markdown><script type="text/template">
+
+New use case! 🚀
+
+```mermaid
+graph LR;
+  src((API))
+  ps[/Pub/Sub/]
+  wh[(S3)]
+  a>Analysts]
+  t1{{Transform}}
+  db1[(Redis)]
+  t2{{"🚀"}}
+  db2[(DBMS)]
+
+  src --> ps;
+  ps --> wh;
+  ps --> t1;
+  ps --> t2;
+
+  subgraph Lake
+  wh --> a
+  end
+
+  subgraph Serving
+  t1 --> db1;
+  t2 --> db2;
+  end
+
+```
+
+</script></section><section  data-markdown><script type="text/template">
+
+Uh oh...
+
+```mermaid
+graph LR;
+  src((API))
+  ps[/Pub/Sub/]
+  wh[(S3)]
+  a>Analysts]
+  t1{{Transform}}
+  db1[(Redis)]
+  t2{{???}}
+  db2[(DBMS)]
+
+  src --> ps;
+  ps --> wh;
+  ps --> t1;
+  ps --> t2;
+
+  subgraph Lake
+  wh --> a
+  end
+
+  subgraph Serving
+  t1 --> db1;
+  t2 --> db2;
+  end
+
+  jb[just a buffer...] -.-> ps;
+  dlh[data lives here!] -.-> wh;
+
+```
+
+</script></section><section  data-markdown><script type="text/template">
+
+Must replay through Pub/Sub 🤮
+
+```mermaid
+graph LR;
+  src((API))
+  ps[/Pub/Sub/]
+  wh[(S3)]
+  a>Analysts]
+  t1{{Transform}}
+  db1[(Redis)]
+  t2{{???}}
+  db2[(DBMS)]
+
+  src --> ps;
+  ps --> wh;
+  ps --> t1;
+  ps --> t2;
+
+  subgraph Lake
+  wh --> a
+  end
+
+  subgraph Serving
+  t1 --> db1;
+  t2 --> db2;
+  end
+
+  wh -.-> rp((Replay Job))
+  rp -.-> ps
+  ps -.-> t2
+
+```
+
+History vs "now" must be manually stitched.<br>
+Mis-orders, duplicates, drops are likely.
+
+</script></section><section  data-markdown><script type="text/template">
+
+How Flow Helps 🌈 
+
+```mermaid
+graph LR;
+  ps[/Pub/Sub/]
+  wh[(S3)]
+  t1{{Transform}}
+  db1[(Redis)]
+  t2{{"🚀"}}
+  db2[(DBMS)]
+
+  ps --> Capture;
+
+  subgraph Flow
+  Capture --> t1;
+  Capture --> t2;
+  end
+
+  subgraph Stores
+  Capture --> wh;
+  t1 --> db1;
+  t2 --> db2;
+  wh -.-> t2
+  end
+```
+
+🚀 reads history right from S3,<br>
+and seamlessly transitions to live updates.
+
+<aside class="notes"><p>We&#39;ve grouped components here as Flow-managed concerns, versus user-managed stores.</p>
+</aside></script></section><section  data-markdown><script type="text/template">
+
+## Concepts
+
+* Collections
+  * Set of schematized documents, backed by cloud storage.
+* Reductions
+  * foo the bar
+* Registers
+  * Enable state.
+
+</script></section></div>
+    </div>
+
+    <script src="./dist/reveal.js"></script>
+
+    <script src="./plugin/markdown/markdown.js"></script>
+    <script src="./plugin/highlight/highlight.js"></script>
+    <script src="./plugin/zoom/zoom.js"></script>
+    <script src="./plugin/notes/notes.js"></script>
+    <script src="./plugin/math/math.js"></script>
+    <script>
+      function extend() {
+        var target = {};
+        for (var i = 0; i < arguments.length; i++) {
+          var source = arguments[i];
+          for (var key in source) {
+            if (source.hasOwnProperty(key)) {
+              target[key] = source[key];
+            }
+          }
+        }
+        return target;
+      }
+
+      // default options to init reveal.js
+      var defaultOptions = {
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+        transition: 'default', // none/fade/slide/convex/concave/zoom
+        plugins: [
+          RevealMarkdown,
+          RevealHighlight,
+          RevealZoom,
+          RevealNotes,
+          RevealMath
+        ]
+      };
+
+      // options from URL query string
+      var queryOptions = Reveal().getQueryHash() || {};
+
+      var options = extend(defaultOptions, {"transition":"fade"}, queryOptions);
+    </script>
+
+    <script src="./_assets/lib/mermaid.min.js"></script>
+    <script src="./_assets/lib/reveal-mermaid.js"></script>
+
+    <script>
+      Reveal.initialize(options);
+    </script>
+  </body>
+</html>

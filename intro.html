@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <title>Estuary Flow: Intro</title>
+    <link rel="shortcut icon" href="./favicon.ico"/>
+    <link rel="stylesheet" href="./dist/reveal.css" />
+    <link rel="stylesheet" href="./dist/theme/league.css" id="theme" />
+    <link rel="stylesheet" href="./css/highlight/zenburn.css" />
+    <link rel="stylesheet" href="./_assets/custom.css" />
+
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides"><section  data-markdown><script type="text/template">
+
+# Estuary <i>Flow</i>
+
+<!-- <audio data-autoplay src="audio/talk about estuary flow.m4a"></audio> -->
+</script></section><section  data-markdown><script type="text/template">
+
+> Unifies technologies and teams around a shared understanding of
+their data...
+
+> ...that updates in milliseconds.
+
+<aside class="notes"><ul>
+<li>Tool the helps orgs define and implement their &quot;Data Mesh&quot;.</li>
+<li>What are our datasets and what are the systems that produce them,
+how can we transform them
+into new data products, how do we push those back out into other
+systems we care about (db, api, pub/sub), how to keep up to date?</li>
+<li>(transition)</li>
+<li>What&#39;s special: operating as low-latency, event-driven system
+  -- add new data, figuring out changes/updates of derived data products &amp; propagating immediately
+  -- but it&#39;s one that interfaces natively with tools &amp; ecosystems of MP batch analytical space (spark, snowflake).</li>
+</ul>
+<p><audio data-autoplay src="audio/intro - intro.m4a"></audio></p>
+</aside></script></section><section  data-markdown><script type="text/template">
+
+### 🧾 Complete History 
+
+_Collections_ represent months or years of historical data right on cloud storage, plus ongoing updates.
+
+<aside class="notes"><ul>
+<li>A lot to talk about w/ Flow, but want to hit on some key features right away<ul>
+<li>When Flow is operating on a collection of data,
+ thinking in terms of complete history of collection + ongoing updates.
+  If you&#39;ve worked with pub/sub systems, that will immediately strike you as pretty unusual,
+  and it&#39;s made possible through Flow&#39;s really efficient use of cloud storage.</li>
+</ul>
+</li>
+</ul>
+<p><audio data-autoplay src="audio/intro - complete history.m4a"></audio></p>
+</aside></script></section><section  data-markdown><script type="text/template">
+
+### ⚙️ Transform Without Limits
+
+- Complex joins and aggregations.
+- <u>Unbounded</u> look-back.
+- <u>No</u> windowing constraints.
+- <u>Dynamic</u> scaling w/o re-partitioning.
+
+
+<aside class="notes"><ul>
+<li><p>If you&#39;ve played with systems offer S2S, may be aware that it comes with a bunch of caveats.</p>
+<ul>
+<li>Happy to join events that occurred a minute apart</li>
+<li>Start to break down if joining something now, against a month ago or more.</li>
+<li>Aggregation is limited:<ul>
+<li>Can count page views in a windowed user session.</li>
+<li>Not able to model cumulative lifetime value of customer over time.</li>
+</ul>
+</li>
+<li>Gnarly operational knobs:<ul>
+<li>For example, requiring that you declare partitions to use up front,
+and not having recourse except rebuilding the entire view if partitioning
+turns out to be insufficient.</li>
+</ul>
+</li>
+<li>Hidden downtime; machine failure =&gt; a bunch of re-done work.</li>
+</ul>
+<ul>
+<li>With flow, don&#39;t have to think about any of that.<ul>
+<li>join whatever you want</li>
+<li>aggregate it however you want</li>
+<li>flow runtime able to dynamically scale the workload,
+keep it running even if there are machine failures,
+w/ E2E exactly once semantics.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><audio data-autoplay src="audio/intro - transform without limits.m4a"></audio></p>
+</aside></script></section><section  data-markdown><script type="text/template">
+
+### 💨 Any DB is a "streaming" DB
+
+Materialize views into SQL & NoSQL databases alike.<br>
+Flow keeps them fresh with continuous map/reduce.
+
+<aside class="notes"><ul>
+<li>Finally, let&#39;s talk about materializations.<ul>
+<li>Common use case: take firehose of raw events, aggregate them into a Postgres fact table of dimensions we care about, and metrics accumulated from those events.</li>
+<li>This is fundamentally a map/reduce problem: map each event into it&#39;s contribution to the fact table, and rolling it up.</li>
+<li>Flow is a distributed, continuous map/reduce engine -- taking advantage of it&#39;s roll-up knowhow to combine data early and often in it&#39;s processing.</li>
+<li>Observation: firehose turns into relative trickle of updates to fact table</li>
+</ul>
+</li>
+</ul>
+<p><audio data-autoplay src="audio/intro - any db is streaming.m4a"></audio></p>
+</aside></script></section></div>
+    </div>
+
+    <script src="./dist/reveal.js"></script>
+
+    <script src="./plugin/markdown/markdown.js"></script>
+    <script src="./plugin/highlight/highlight.js"></script>
+    <script src="./plugin/zoom/zoom.js"></script>
+    <script src="./plugin/notes/notes.js"></script>
+    <script src="./plugin/math/math.js"></script>
+    <script>
+      function extend() {
+        var target = {};
+        for (var i = 0; i < arguments.length; i++) {
+          var source = arguments[i];
+          for (var key in source) {
+            if (source.hasOwnProperty(key)) {
+              target[key] = source[key];
+            }
+          }
+        }
+        return target;
+      }
+
+      // default options to init reveal.js
+      var defaultOptions = {
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+        transition: 'default', // none/fade/slide/convex/concave/zoom
+        plugins: [
+          RevealMarkdown,
+          RevealHighlight,
+          RevealZoom,
+          RevealNotes,
+          RevealMath
+        ]
+      };
+
+      // options from URL query string
+      var queryOptions = Reveal().getQueryHash() || {};
+
+      var options = extend(defaultOptions, {"transition":"fade"}, queryOptions);
+    </script>
+
+    <script src="./_assets/lib/mermaid.min.js"></script>
+    <script src="./_assets/lib/reveal-mermaid.js"></script>
+
+    <script>
+      Reveal.initialize(options);
+    </script>
+  </body>
+</html>
