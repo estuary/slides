@@ -569,7 +569,7 @@ and seamlessly transitions to live updates.
       // options from URL query string
       var queryOptions = Reveal().getQueryHash() || {};
 
-      var options = extend(defaultOptions, {"transition":"fade"}, queryOptions);
+      var options = extend(defaultOptions, {"transition":"fade","touch":false}, queryOptions);
     </script>
 
     <script src="./assets/lib/mermaid.min.js"></script>

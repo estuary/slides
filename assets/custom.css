@@ -1,4 +1,12 @@
-audio {
-    margin-bottom: 20px;
+@media only screen and (max-device-width: 400px) {
+  audio {
     transform: scale(2, 2);
+    margin-bottom: 20px;
+  }
+}
+@media only screen and (max-device-height: 400px) {
+  audio {
+    transform: scale(2, 2);
+    margin-bottom: 20px;
+  }
 }
