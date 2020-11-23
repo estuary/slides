@@ -21,11 +21,8 @@ jobs:
       - name: Install and Build
         run: |
           npm install --no-optional reveal-md
-          mkdir build
-          cp -r img build/
-          cp -r lib build/
           find *.md -print0 | xargs -0 -n1 -t sed -i 's/"media\//"https:\/\/media.githubusercontent.com\/media\/estuary\/slides\/master\/media\//g'
-          ./node_modules/.bin/reveal-md --css custom.css ./ --static build --static-dirs=lib,img --absolute-url https://estuary.github.io/slides/
+          ./node_modules/.bin/reveal-md --css custom.css ./ --static build --static-dirs=img --assets-dir=assets --absolute-url https://estuary.github.io/slides/
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@releases/v3
         with:
