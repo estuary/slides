@@ -4,8 +4,6 @@ separator: <!--s-->
 verticalSeparator: <!--v-->
 theme: league
 scripts: 'lib/mermaid.min.js,lib/reveal-mermaid.js'
-revealOptions:
-  transition: 'fade'
 ---
 
 # Estuary <i>Flow</i>
