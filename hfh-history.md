@@ -16,6 +16,7 @@ What happens today...
 Note: speaking of history, let's talk about why this is such a problem today.
 
 <!--s-->
+<audio data-autoplay src="media/hfh_history_lambda.m4a"></audio>
 
 A typical λ architecture.
 
@@ -45,6 +46,7 @@ graph LR;
 Note: now classic "lambda" architecture.
 
 <!--s-->
+<audio data-autoplay src="media/hfh_history_new_use_case.m4a"></audio>
 
 New use case! 🚀
 
@@ -76,6 +78,7 @@ graph LR;
 ```
 
 <!--s-->
+<audio data-autoplay src="media/hfh_history_uh_oh.m4a"></audio>
 
 Uh oh...
 
@@ -110,6 +113,7 @@ graph LR;
 ```
 
 <!--s-->
+<audio data-autoplay src="media/hfh_history_replay.m4a"></audio>
 
 Must replay through Pub/Sub 🤮
 
@@ -148,6 +152,7 @@ History vs "now" must be manually stitched.<br>
 Mis-orders, duplicates, drops are likely.
 
 <!--s-->
+<audio data-autoplay src="media/hfh_history_how_flow_helps.m4a"></audio>
 
 How Flow Helps 🌈 
 
@@ -178,9 +183,8 @@ graph LR;
 🚀 reads history right from S3,<br>
 and seamlessly transitions to live updates.
 
-Note: We've grouped components here as Flow-managed concerns, versus user-managed stores.
-
 <!--s-->
+<audio data-autoplay src="media/hfh_history_rematerialize.m4a"></audio>
 
 But wait, there's more...
 

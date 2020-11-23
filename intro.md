@@ -10,7 +10,6 @@ revealOptions:
 
 # Estuary <i>Flow</i>
 
-<!-- <audio data-autoplay src="audio/talk about estuary flow.m4a"></audio> -->
 <!--s-->
 
 > Unifies technologies and teams around a shared understanding of
@@ -29,7 +28,7 @@ Note:
 	-- add new data, figuring out changes/updates of derived data products & propagating immediately
 	-- but it's one that interfaces natively with tools & ecosystems of MP batch analytical space (spark, snowflake).
 
-<audio data-autoplay src="audio/intro - intro.m4a"></audio>
+<audio data-autoplay src="media/intro_intro.m4a"></audio>
 <!--s-->
 
 ### 🧾 Complete History 
@@ -43,7 +42,7 @@ Note:
       If you've worked with pub/sub systems, that will immediately strike you as pretty unusual,
       and it's made possible through Flow's really efficient use of cloud storage.
 
-<audio data-autoplay src="audio/intro - complete history.m4a"></audio>
+<audio data-autoplay src="media/intro_complete_history.m4a"></audio>
 <!--s-->
 
 ### ⚙️ Transform Without Limits
@@ -75,7 +74,7 @@ Note:
      keep it running even if there are machine failures,
      w/ E2E exactly once semantics.
    
-<audio data-autoplay src="audio/intro - transform without limits.m4a"></audio>
+<audio data-autoplay src="media/intro_transform_without_limits.m4a"></audio>
 <!--s-->
 
 ### 💨 Any DB is a "streaming" DB
@@ -90,4 +89,4 @@ Note:
   - Flow is a distributed, continuous map/reduce engine -- taking advantage of it's roll-up knowhow to combine data early and often in it's processing.
   - Observation: firehose turns into relative trickle of updates to fact table
 
-<audio data-autoplay src="audio/intro - any db is streaming.m4a"></audio>
+<audio data-autoplay src="media/intro_any_db_is_streaming.m4a"></audio>
