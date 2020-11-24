@@ -185,5 +185,9 @@ Each has its own "publish" and "update" lambdas.
 Registers are shared, keyed by _shuffle_.<br>
 Use them to [communicate](https://estuary.readthedocs.io/en/latest/derive-patterns/README.html) between lambdas.
 
+<!--s-->
 
+### What's next?
+
+- [How Flow Helps: History](hfh-history.html)
 

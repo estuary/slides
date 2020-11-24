@@ -165,3 +165,12 @@ CREATE TABLE shipments (
 ```
 
 Primary key is always the collection key.
+
+<!--s-->
+
+### What's next?
+
+- [Reductions](reductions.html)
+- [Derivations](derivations.html)
+- [How Flow Helps: History](hfh-history.html)
+

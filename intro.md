@@ -88,3 +88,12 @@ Note:
   - Flow is a distributed, continuous map/reduce engine -- taking advantage of it's roll-up knowhow to combine data early and often in it's processing.
   - Observation: firehose turns into relative trickle of updates to fact table
 
+<!--s-->
+
+### What's next?
+
+- [Collections](collections.html)
+- [Reductions](reductions.html)
+- [Derivations](derivations.html)
+- [How Flow Helps: History](hfh-history.html)
+

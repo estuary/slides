@@ -112,3 +112,10 @@ oneOf:
 As _annotations_, they react to schema evaluation.<br>
 Use conditionals to build more advanced behaviors.
 
+<!--s-->
+
+### What's next?
+
+- [Derivations](derivations.html)
+- [How Flow Helps: History](hfh-history.html)
+
