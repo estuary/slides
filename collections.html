@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <title>Estuary Flow</title>
+    <meta property="og:title" content="Estuary Flow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://estuary.github.io/slides//featured-slide.jpg" />
+    <meta property="og:url" content="https://estuary.github.io/slides/" />
+    <link rel="shortcut icon" href="./favicon.ico"/>
+    <link rel="stylesheet" href="./dist/reveal.css" />
+    <link rel="stylesheet" href="./dist/theme/league.css" id="theme" />
+    <link rel="stylesheet" href="./css/highlight/zenburn.css" />
+    <link rel="stylesheet" href="./assets/custom.css" />
+
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides"><section  data-markdown><script type="text/template">
+
+# Collections
+
+</script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+<audio controls src="https://media.githubusercontent.com/media/estuary/slides/master/media/collections_1.m4a"></audio>
+
+```yaml
+collections:
+  - name: shipments
+    key: [/id]
+```
+
+Collections are a real-time cloud storage lake
+that's directly accessible using preferred tools.
+
+<aside class="notes"><ul>
+<li>Collections are simultaneously a super fast pub/sub topic,
+ and a complete description of a data set, stored right in cloud storage.<ul>
+<li>Representation accessible to low-latency EP and MP tools like Snowflake.</li>
+<li>Fundamentally break down the barrier that today, divides CEP vs MP.</li>
+</ul>
+</li>
+</ul>
+</aside></script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+<audio controls src="https://media.githubusercontent.com/media/estuary/slides/master/media/collections_2.m4a"></audio>
+
+Documents are [schematized](https://json-schema.org/understanding-json-schema/) JSON.
+
+```yaml
+collections:
+  - name: shipments
+    key: [/id]
+```
+```yaml
+    schema: https://example/shipments.schema.yaml
+    projections:
+      carrier:
+        location: /vendor/name # JSON pointer.
+        partition: true
+```
+
+<i>Projections</i> relate table columns ⇔ document locations.
+
+<aside class="notes"><ul>
+<li>Set of JSON documents. Add at any time, update by writing new document with same key.<ul>
+<li>Also schematized. JSON schema against which all documents must validate.</li>
+<li>Flow integrating against systems which aren&#39;t JSON native. Projections are how we relate.</li>
+</ul>
+</li>
+</ul>
+</aside></script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+<audio controls src="https://media.githubusercontent.com/media/estuary/slides/master/media/collections_3.m4a"></audio>
+
+```yaml
+collections:
+  - name: shipments
+    key: [/id]
+```
+```yaml
+    schema: https://example/shipments.schema.yaml
+    projections:
+      carrier:
+        location: /vendor/name # JSON pointer.
+        partition: true
+```
+
+Stored as logically partitioned, compressed JSON.
+
+```
+shipments/carrier=UPS/utc_date=2020-11-22/{name}.gz
+```
+
+</script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+<audio controls src="https://media.githubusercontent.com/media/estuary/slides/master/media/collections_4.m4a"></audio>
+
+```yaml
+collections:
+  - name: shipments
+    key: [/id]
+```
+Stored as logically partitioned, compressed JSON.
+
+```
+shipments/carrier=UPS/utc_date=2020-11-22/{name}.gz
+```
+
+* Query via Snowflake / BigQuery
+  * Predicate push-down ➭ <i>fast and cheap</i>.
+* Or Spark, Map/Reduce, etc.
+
+</script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+<audio controls src="https://media.githubusercontent.com/media/estuary/slides/master/media/collections_5.m4a"></audio>
+
+Capture collections by binding from endpoints.
+
+```yaml [2,11|6,12-13]
+collections:
+  - name: shipments
+    key: [/id]
+
+endpoints:
+  myKenesisAccount:
+    kenesis: "arn:aws:kinesis:us-east-1:my-account-id"
+
+capture:
+  fromMyKenesisFirehose:
+   - collection: shipments
+     endpoint: myKenesisAccount
+     stream: Shipments
+```
+
+Or from a watched S3 bucket, Database, API, etc...
+
+</script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+<audio controls src="https://media.githubusercontent.com/media/estuary/slides/master/media/collections_6.m4a"></audio>
+
+Materialize collections by binding to endpoints.
+
+```yaml [2,11|6,12-13]
+collections:
+  - name: shipments
+    key: [/id]
+
+endpoints:
+  myDatabase:
+    postgresql: "https://CLUSTER_ID.LOCAL_HOST_IP.ip.es.io:9243"
+
+materialize:
+  shipmentsToPostgres:
+   - collection: shipments
+     endpoint: myDatabase
+     table: shipments_by_id
+```
+
+Materialize into SQL, NoSQL, Pub/Sub, & APIs.
+
+</script></section><section  data-markdown><script type="text/template">
+<!-- .slide: data-auto-animate -->
+<audio controls src="https://media.githubusercontent.com/media/estuary/slides/master/media/collections_7.m4a"></audio>
+
+Schema is _projected_ into the target system.
+
+```yaml []
+collections:
+  - name: shipments
+    key: [/id]
+    schema: https://example/shipments.schema.yaml
+```
+```SQL []
+-- Generated by Flow from `shipments`.
+CREATE TABLE shipments (
+  id       BIGINT PRIMARY KEY NOT NULL,
+  carrier  TEXT NOT NULL,
+  address  TEXT
+);
+```
+
+Primary key is always the collection key.
+
+</script></section><section  data-markdown><script type="text/template">
+
+### What's next?
+
+- [Reductions](reductions.html)
+- [Derivations](derivations.html)
+- [How Flow Helps: History](hfh-history.html)
+
+</script></section></div>
+    </div>
+
+    <script src="./dist/reveal.js"></script>
+
+    <script src="./plugin/markdown/markdown.js"></script>
+    <script src="./plugin/highlight/highlight.js"></script>
+    <script src="./plugin/zoom/zoom.js"></script>
+    <script src="./plugin/notes/notes.js"></script>
+    <script src="./plugin/math/math.js"></script>
+    <script>
+      function extend() {
+        var target = {};
+        for (var i = 0; i < arguments.length; i++) {
+          var source = arguments[i];
+          for (var key in source) {
+            if (source.hasOwnProperty(key)) {
+              target[key] = source[key];
+            }
+          }
+        }
+        return target;
+      }
+
+      // default options to init reveal.js
+      var defaultOptions = {
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+        transition: 'default', // none/fade/slide/convex/concave/zoom
+        plugins: [
+          RevealMarkdown,
+          RevealHighlight,
+          RevealZoom,
+          RevealNotes,
+          RevealMath
+        ]
+      };
+
+      // options from URL query string
+      var queryOptions = Reveal().getQueryHash() || {};
+
+      var options = extend(defaultOptions, {"touch":false,"transition":"fade","transitionSpeed":"fast"}, queryOptions);
+    </script>
+
+    <script src="./assets/lib/mermaid.min.js"></script>
+    <script src="./assets/lib/reveal-mermaid.js"></script>
+
+    <script>
+      Reveal.initialize(options);
+    </script>
+  </body>
+</html>

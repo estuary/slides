@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <title>Estuary Flow</title>
+    <meta property="og:title" content="Estuary Flow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://estuary.github.io/slides//featured-slide.jpg" />
+    <meta property="og:url" content="https://estuary.github.io/slides/" />
+    <link rel="shortcut icon" href="./favicon.ico"/>
+    <link rel="stylesheet" href="./dist/reveal.css" />
+    <link rel="stylesheet" href="./dist/theme/league.css" id="theme" />
+    <link rel="stylesheet" href="./css/highlight/zenburn.css" />
+    <link rel="stylesheet" href="./assets/custom.css" />
+
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides"><section  data-markdown><script type="text/template">
+
+# Reductions
+
+</script></section><section  data-markdown><script type="text/template">
+
+```SQL [3-5]
+SELECT
+    sensor_id,
+    MIN(degrees) AS degrees_min,
+    MAX(degrees) AS degrees_max,
+    SUM(1)       AS n_samples,
+    FROM readings
+    GROUP BY sensor_id;
+```
+
+In SQL, describe reductions as _aggregate functions_.
+
+</script></section><section  data-markdown><script type="text/template">
+
+```SQL [5-7]
+SELECT
+    sensor_id,
+    site_id,
+    utc_date,
+    MIN(degrees) AS degrees_min,
+    MAX(degrees) AS degrees_max,
+    SUM(1)       AS n_samples,
+    FROM readings
+    GROUP BY sensor_id, site_id, utc_date;
+```
+
+We end up repeating ourselves quite a bit.<br>
+Most metrics have only one sensible aggregation.
+
+</script></section><section  data-markdown><script type="text/template">
+
+```yaml [5,7,8,10,11,13]
+properties:
+    sensor_id:  { type: integer }
+    site_id: { type: integer }
+    utc_date:   { format: date }
+    degrees_min:
+      type: number
+      reduce: {strategy: minimize}
+    degrees_max:
+      type: number
+      reduce: {strategy: maximize}
+    n_samples:
+      type: integer
+      reduce: {strategy: sum}
+```
+
+Flow "hoists" description to the JSON schema.<br>
+Use one schema, grouped many ways.
+
+</script></section><section  data-markdown><script type="text/template">
+
+```yaml []
+properties:
+  # Roll up a sorted array of site IDs.
+  site_metrics:
+    items: "#SensorRollup"
+    reduce:
+      strategy: merge
+      key: [/site_id]
+   
+```
+
+Go beyond fact tables!<br>
+Express compose-able, nested reductions.
+
+</script></section><section  data-markdown><script type="text/template">
+
+```JSON
+{ "site_metrics": [{"site_id": 7, "n_samples": 3}] }
+{ "site_metrics": [{"site_id": 9, "n_samples": 2}] }
+{ "site_metrics": [{"site_id": 7, "n_samples": 9}] }
+```
+
+⇩
+
+```JSON
+{
+  "site_metrics": [
+    {"site_id": 7, "n_samples": 12},
+    {"site_id": 9, "n_samples": 2}
+  ]
+}
+```
+
+</script></section><section  data-markdown><script type="text/template">
+
+```yaml []
+# Leave, or overwrite a prior value based on `action`.
+oneOf:
+  - properties:
+      action: { const: insert }
+    reduce: { strategy: firstWriteWins }
+
+  - properties:
+      action: { const: update }
+    reduce: { strategy: lastWriteWins }
+```
+
+As _annotations_, they react to schema evaluation.<br>
+Use conditionals to build more advanced behaviors.
+
+</script></section><section  data-markdown><script type="text/template">
+
+### What's next?
+
+- [Derivations](derivations.html)
+- [How Flow Helps: History](hfh-history.html)
+
+</script></section></div>
+    </div>
+
+    <script src="./dist/reveal.js"></script>
+
+    <script src="./plugin/markdown/markdown.js"></script>
+    <script src="./plugin/highlight/highlight.js"></script>
+    <script src="./plugin/zoom/zoom.js"></script>
+    <script src="./plugin/notes/notes.js"></script>
+    <script src="./plugin/math/math.js"></script>
+    <script>
+      function extend() {
+        var target = {};
+        for (var i = 0; i < arguments.length; i++) {
+          var source = arguments[i];
+          for (var key in source) {
+            if (source.hasOwnProperty(key)) {
+              target[key] = source[key];
+            }
+          }
+        }
+        return target;
+      }
+
+      // default options to init reveal.js
+      var defaultOptions = {
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+        transition: 'default', // none/fade/slide/convex/concave/zoom
+        plugins: [
+          RevealMarkdown,
+          RevealHighlight,
+          RevealZoom,
+          RevealNotes,
+          RevealMath
+        ]
+      };
+
+      // options from URL query string
+      var queryOptions = Reveal().getQueryHash() || {};
+
+      var options = extend(defaultOptions, {"touch":false,"transition":"fade","transitionSpeed":"fast"}, queryOptions);
+    </script>
+
+    <script src="./assets/lib/mermaid.min.js"></script>
+    <script src="./assets/lib/reveal-mermaid.js"></script>
+
+    <script>
+      Reveal.initialize(options);
+    </script>
+  </body>
+</html>
