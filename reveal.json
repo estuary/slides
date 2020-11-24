@@ -1,4 +1,5 @@
 {
 	"touch": false,
-	"transition": "fade"
+	"transition": "fade",
+	"transitionSpeed": "fast"
 }
