@@ -81,6 +81,8 @@ Note:
 Materialize views into SQL & NoSQL databases alike.<br>
 Flow keeps them fresh with continuous map/reduce.
 
+<img src="img/materialization.gif" />
+
 Note:
  - Finally, let's talk about materializations.
   - Common use case: take firehose of raw events, aggregate them into a Postgres fact table of dimensions we care about, and metrics accumulated from those events.
